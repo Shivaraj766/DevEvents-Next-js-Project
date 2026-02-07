@@ -8,8 +8,21 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 const Page = async () => {
     'use cache';
     cacheLife('hours')
-    const response = await fetch(`${BASE_URL}/api/events`);
-    const { events } = await response.json();
+    
+    let events: IEvent[] = [];
+    
+    try {
+        const response = await fetch(`${BASE_URL}/api/events`, {
+            next: { revalidate: 3600 }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            events = data.events || [];
+        }
+    } catch (error) {
+        console.warn('Failed to fetch events:', error);
+        // Continue with empty events array during build
+    }
 
     return (
         <section>
